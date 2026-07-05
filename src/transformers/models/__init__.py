@@ -503,6 +503,7 @@ if TYPE_CHECKING:
     from .zamba2 import *
     from .zaya import *
     from .zoedepth import *
+    from .quatfit1 import *
 else:
     import sys
 
