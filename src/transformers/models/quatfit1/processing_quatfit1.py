@@ -72,7 +72,7 @@ class Quatfit1Processor(ProcessorMixin):
         audio_ms_per_token (`int`, *optional*, defaults to 40):
             Milliseconds of audio per output soft token. Used to dynamically compute
             the number of audio placeholder tokens as ``ceil(duration_ms / audio_ms_per_token)``.
-            The default of 40 comes from the SSCP convolution's 4× time reduction on 10ms frames.
+            The default of 40 comes from the SSCP convolution's 4Ã— time reduction on 10ms frames.
         """
         self.image_seq_length = image_seq_length
         self.image_token_id = tokenizer.image_token_id
@@ -91,7 +91,7 @@ class Quatfit1Processor(ProcessorMixin):
         # number of placeholders inserted per audio is computed from the audio duration.
         self.audio_seq_length = audio_seq_length
         # Milliseconds of audio per output soft token. The default of 40 comes from the
-        # SSCP convolution's 4× time reduction applied to 10ms mel spectrogram frames.
+        # SSCP convolution's 4Ã— time reduction applied to 10ms mel spectrogram frames.
         self.audio_ms_per_token = audio_ms_per_token
         self.audio_token_id = getattr(tokenizer, "audio_token_id", None)
         self.audio_token = getattr(tokenizer, "audio_token", None)

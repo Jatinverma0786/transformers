@@ -109,7 +109,7 @@ def create_masks_for_vision_model(
         "position_ids": position_ids,
     }
 
-    # Full attention: causal only — no bidirectional blockwise overlay.
+    # Full attention: causal only â€” no bidirectional blockwise overlay.
     full_mask = create_causal_mask(**mask_kwargs)
 
     # We need to manually pad the sequence IDs for the sliding mask
@@ -630,8 +630,8 @@ class Quatfit1VisionPatchEmbedder(nn.Module):
         # construction, so no upper-bound clamping is needed.
         clamped_positions = pixel_position_ids.clamp(min=0)
         # position_embedding_table: (2, position_embedding_size, hidden_size)
-        # clamped_positions[..., 0]: (batch, num_patches) — x indices
-        # clamped_positions[..., 1]: (batch, num_patches) — y indices
+        # clamped_positions[..., 0]: (batch, num_patches) â€” x indices
+        # clamped_positions[..., 1]: (batch, num_patches) â€” y indices
         x_emb = F.embedding(clamped_positions[..., 0], self.position_embedding_table[0])
         y_emb = F.embedding(clamped_positions[..., 1], self.position_embedding_table[1])
         position_embeddings = x_emb + y_emb

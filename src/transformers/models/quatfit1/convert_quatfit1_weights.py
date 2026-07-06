@@ -1571,7 +1571,7 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
     def store(path: str, weights, dtype=None):
         """Store a tensor in the HF tree."""
         weights_np = np.asarray(weights, dtype=np.float32) if dtype is None else np.asarray(weights)
-        # .copy() ensures each tensor has its own memory — safetensors drops
+        # .copy() ensures each tensor has its own memory â€” safetensors drops
         # shared-memory tensors (e.g. duplicated SRQ scales for K/V).
         t = torch.from_numpy(weights_np.copy())
         if dtype is not None:
@@ -1592,7 +1592,7 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
         if weights_np.dtype not in (np.int8, np.int16, np.int32, np.int64, np.uint8, np.uint16, np.uint32, np.uint64):
             logging.info("Upcasting %s from %s to int8", path, weights_np.dtype)
             weights_np = weights_np.astype(np.int8)
-        # .copy() ensures each tensor has its own memory — safetensors drops
+        # .copy() ensures each tensor has its own memory â€” safetensors drops
         # shared-memory tensors.
         t = torch.from_numpy(weights_np.copy())
         hf_tree[path] = t.contiguous()
@@ -1642,7 +1642,7 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
             # managed by the quantizer or needs dequantization.
 
             if path.startswith(_TRANSFORMER_PARAMETER) or path.startswith(_TRANSFORMER_POST_TRAINING_PREFIX):
-                # Transformer layer — try quantized conversion for attn/MLP projections
+                # Transformer layer â€” try quantized conversion for attn/MLP projections
                 if param in ("w_quantized_value", "w_quantized_scale", "static_quantized_scale", "static_num_bits"):
                     # SRQ scales live under nested paths like:
                     #   transformer/layer_0/attn/q_einsum/compression_einsum/input_activation
@@ -1673,7 +1673,7 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
                             else:
                                 store(f"{text_path_prefix}.{hf_path}", tensor)
                     else:
-                        # Layer not handled by quantizer — collect for dequantization
+                        # Layer not handled by quantizer â€” collect for dequantization
                         key = effective_path
                         if param == "w_quantized_value":
                             dequant_pending.setdefault(key, {})["value"] = value
@@ -1732,7 +1732,7 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
                     dequant_pending.setdefault(key, {})["scale"] = value
 
         elif param in ("fq_static_k_cache", "fq_static_v_cache"):
-            # KV cache quantization scales — sub-dicts handled by tree flattening
+            # KV cache quantization scales â€” sub-dicts handled by tree flattening
             pass
         elif path.endswith("fq_static_k_cache") or path.endswith("fq_static_v_cache"):
             # KV cache scales emitted to safetensors but not consumed by modeling.
@@ -1754,7 +1754,7 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
                     store(f"{text_path_prefix}.layers.{layer_idx}.self_attn.{cache_type}", value)
 
         else:
-            # Non-quantized params: norms, scalars, embeddings — use regular conversion
+            # Non-quantized params: norms, scalars, embeddings â€” use regular conversion
             if path.endswith("audio_embedding_norm") and not _TEXT_ONLY.value:
                 store("model.embed_audio.hard_embedding_norm.weight", value)
             elif path.endswith("audio_input_projection") and not _TEXT_ONLY.value:
@@ -1816,7 +1816,7 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
         ):
             value_np = value_np.astype(np.int8)
         # Squeeze scale to match value dimensionality to avoid broadcasting issues.
-        # Scale from Orbax may be (N, 1, 1) but value is (N, M) — squeeze to (N, 1).
+        # Scale from Orbax may be (N, 1, 1) but value is (N, M) â€” squeeze to (N, 1).
         while scale_np.ndim > value_np.ndim:
             scale_np = scale_np.squeeze(-1)
         dequantized = value_np.astype(np.float32) * scale_np
@@ -1846,7 +1846,7 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
 
             if param_prefix in ("per_layer_embeddings", "input_embedding"):
                 if norm_path != _TRANSFORMER_EMBEDDER:
-                    # Sub-path (e.g. eevee_embedder) — skip, not needed for HF model
+                    # Sub-path (e.g. eevee_embedder) â€” skip, not needed for HF model
                     print(f"SKIP: {orbax_path}:{param_prefix} (sub-path, not main embedder)", flush=True)
                     continue
 
@@ -1864,8 +1864,8 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
                     # Reshape to [262144, 35*256] to match HF Embedding(vocab, num_layers*dim)
                     vocab_size, num_layers, hidden_dim = value_np.shape
                     value_int8 = value_np.reshape(vocab_size, num_layers * hidden_dim).astype(np.int8)
-                    # Scale is (vocab_size, 35, 1) — one scale per layer per token.
-                    # Keep compact as (vocab_size, 35) — the forward pass uses
+                    # Scale is (vocab_size, 35, 1) â€” one scale per layer per token.
+                    # Keep compact as (vocab_size, 35) â€” the forward pass uses
                     # scale_block_size to apply block-wise dequantization.
                     scale_np = scale_np.reshape(vocab_size, num_layers)
                     hf_base = f"{text_path_prefix}.embed_tokens_per_layer"
@@ -1886,7 +1886,7 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
                     flush=True,
                 )
             else:
-                # Other embedder sub-paths (per_layer_model_projection, etc.) — dequantize as before
+                # Other embedder sub-paths (per_layer_model_projection, etc.) â€” dequantize as before
                 conv_param = param_prefix
                 conv_path = norm_path
                 for hf_path, weights in convert_transformer_weights(
@@ -1917,7 +1917,7 @@ def convert_quantized(checkpoint_path: str, config: Quatfit1Config) -> dict[str,
             hf_tree["lm_head.weight_scale"].shape,
         )
     else:
-        # Fallback: non-quantized embedding — copy as float weight
+        # Fallback: non-quantized embedding â€” copy as float weight
         emb_key = f"{text_path_prefix}.embed_tokens.weight"
         if emb_key in hf_tree:
             hf_tree["lm_head.weight"] = hf_tree[emb_key].clone()
@@ -2059,7 +2059,7 @@ def convert_quantized_transformer_weights(
         # Weights have a leading stack dimension [num_stacks, ...] that needs unstacking.
         is_stacked = True
         attention_type_index = int(path[_TRANSFORMER_DECODER_BLOCK_LEN])
-        # For stacked, we iterate below — set initial layer_idx to 0 for head_dim
+        # For stacked, we iterate below â€” set initial layer_idx to 0 for head_dim
         layer_idx = attention_type_index
         base_path = f"layers.{layer_idx}"  # will be updated per-stack
     else:
@@ -2142,7 +2142,7 @@ def convert_quantized_transformer_weights(
     def squeeze_scale(w):
         """Reshape per-channel scale to (N, 1) for broadcasting with 2D weight.
 
-        Orbax scales may be (N, 1, 1) or (N,) — normalize to (N, 1) to match
+        Orbax scales may be (N, 1, 1) or (N,) â€” normalize to (N, 1) to match
         the buffer shape in Quatfit1QuantizedLinear.
         """
         flat = w.reshape(-1)
@@ -2290,7 +2290,7 @@ def convert_quantized_transformer_weights(
         converted_paths.append(f"{base_path}.mlp.down_proj.{hf_suffix}")
         converted_weights.append(w)
     elif path.endswith("per_layer_input_gate"):
-        # per_layer_input_gate: JAX [hidden, per_layer_dim] ? HF [per_layer_dim, hidden]
+        # per_layer_input_gate: JAX [hidden, per_layer_dim] â†’ HF [per_layer_dim, hidden]
         if is_value:
             w = weights.transpose() if weights.ndim == 2 else weights
         elif is_scale:
@@ -2300,7 +2300,7 @@ def convert_quantized_transformer_weights(
         converted_paths.append(f"{base_path}.per_layer_input_gate.{hf_suffix}")
         converted_weights.append(w)
     elif path.endswith("per_layer_projection"):
-        # per_layer_projection: JAX [per_layer_dim, hidden] ? HF [hidden, per_layer_dim]
+        # per_layer_projection: JAX [per_layer_dim, hidden] â†’ HF [hidden, per_layer_dim]
         if is_value:
             w = weights.transpose() if weights.ndim == 2 else weights
         elif is_scale:
@@ -2444,26 +2444,26 @@ def main(*args):
         # Per-module bit widths and the modules that the orbax checkpoint stores
         # un-quantized. Patterns are regexes matched with `re.search`. The dict
         # is serialized with `sort_keys=True` by `PretrainedConfig`, so insertion
-        # order is lost — anchor patterns end-of-name (`$`) or with `\.` so
+        # order is lost â€” anchor patterns end-of-name (`$`) or with `\.` so
         # ordering doesn't matter.
         if "e4b" in variant:
             module_quant_configs = {
-                # Embeddings — int2 across the board for E4B.
+                # Embeddings â€” int2 across the board for E4B.
                 r"language_model\.embed_tokens_per_layer$": {"num_bits": 2},
                 r"language_model\.embed_tokens$": {"num_bits": 2},
                 r"^lm_head$": {"num_bits": 2},
-                # PLE Linear Layers — int8.
+                # PLE Linear Layers â€” int8.
                 r"language_model\.layers\.\d+\.per_layer_input_gate$": {"num_bits": 8},
                 r"language_model\.layers\.\d+\.per_layer_projection$": {"num_bits": 8},
-                # Vision tower — int8.
+                # Vision tower â€” int8.
                 r"vision_tower": {"num_bits": 8},
-                # Audio tower — int2 for most layers, int4 for lconv/linear_start.
+                # Audio tower â€” int2 for most layers, int4 for lconv/linear_start.
                 # The negative lookahead sorts before the specific pattern
                 # (since '(' < '\') ensuring correct resolve order after
                 # JSON sort_keys=True serialization.
                 r"audio_tower(?!.*lconv1d\.linear_start)": {"num_bits": 2},
                 r"audio_tower\.layers\.\d+\.lconv1d\.linear_start\.": {"num_bits": 4},
-                # Language model attention + MLP — int4 across all layers.
+                # Language model attention + MLP â€” int4 across all layers.
                 r"language_model\.layers\.\d+\.self_attn\.": {"num_bits": 4},
                 r"language_model\.layers\.\d+\.mlp\.": {"num_bits": 4},
             }
@@ -2475,7 +2475,7 @@ def main(*args):
                 r"language_model\.layers\.\d+\.per_layer_input_gate$": {"num_bits": 8},
                 r"language_model\.layers\.\d+\.per_layer_projection$": {"num_bits": 8},
                 r"vision_tower": {"num_bits": 8},
-                # Audio tower — int2 for most layers, int4 for lconv/linear_start.
+                # Audio tower â€” int2 for most layers, int4 for lconv/linear_start.
                 r"audio_tower(?!.*lconv1d\.linear_start)": {"num_bits": 2},
                 r"audio_tower\.layers\.\d+\.lconv1d\.linear_start\.": {"num_bits": 4},
                 r"language_model\.layers\.\d+\.self_attn\.": {"num_bits": 4},
@@ -2515,7 +2515,7 @@ def main(*args):
         if hasattr(config, "text_config") and config.text_config is not None:
             config.text_config.tie_word_embeddings = False
         # The quantized checkpoint has no calibrated clip bounds, so the clip
-        # buffers in `Quatfit1ClippableLinear` would be ±inf no-ops at runtime.
+        # buffers in `Quatfit1ClippableLinear` would be Â±inf no-ops at runtime.
         # Disable them so the load report doesn't spam MISSING for them and the
         # forward path skips two extra clamps per call.
         if hasattr(config, "audio_config") and config.audio_config is not None:

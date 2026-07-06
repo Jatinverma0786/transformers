@@ -157,7 +157,7 @@ class Quatfit1ImageProcessor(TorchvisionBackend):
 
     def _validate_preprocess_kwargs(self, **kwargs):
         # Quatfit1 uses aspect_ratio_preserving_resize driven by patch_size,
-        # max_soft_tokens, and pooling_kernel_size — not the standard `size`
+        # max_soft_tokens, and pooling_kernel_size â€” not the standard `size`
         # parameter. Temporarily disable do_resize so the base validation
         # doesn't require `size` to be set.
         kwargs["do_resize"] = False
