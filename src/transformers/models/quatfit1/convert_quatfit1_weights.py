@@ -44,6 +44,8 @@ from orbax.checkpoint import type_handlers
 from safetensors.torch import save_file
 
 from transformers import (
+    GemmaTokenizer,
+    GenerationConfig,
     Quatfit1AssistantConfig,
     Quatfit1AssistantForCausalLM,
     Quatfit1AudioConfig,
@@ -56,8 +58,6 @@ from transformers import (
     Quatfit1TextConfig,
     Quatfit1VideoProcessor,
     Quatfit1VisionConfig,
-    GemmaTokenizer,
-    GenerationConfig,
     RopeParameters,
 )
 from transformers.tokenization_utils_sentencepiece import SentencePieceExtractor

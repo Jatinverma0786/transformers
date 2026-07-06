@@ -61,8 +61,18 @@ from ...utils import (
 )
 from ...utils.generic import maybe_autocast, merge_with_config_defaults
 from ...utils.output_capturing import OutputRecorder, capture_outputs
-from ..auto.modeling_auto import AutoModel
-from .configuration_quatfit1 import Quatfit1AudioConfig, Quatfit1Config, Quatfit1TextConfig, Quatfit1VisionConfig
+from ..auto import (
+    AutoConfig,
+    AutoModel,
+    AutoModelForCausalLM,
+    AutoModelForImageTextToText,
+)
+from .configuration_quatfit1 import (
+    Quatfit1AudioConfig,
+    Quatfit1Config,
+    Quatfit1TextConfig,
+    Quatfit1VisionConfig,
+)
 
 
 if is_accelerate_available():
@@ -2709,9 +2719,6 @@ __all__ = [
 
 
 # Register with the auto system
-from ..auto import AutoConfig, AutoModelForCausalLM, AutoModelForImageTextToText
-from .configuration_quatfit1 import Quatfit1Config
-
 AutoConfig.register("quatfit1", Quatfit1Config)
 AutoModel.register(Quatfit1Config, Quatfit1ForConditionalGeneration)
 AutoModelForCausalLM.register(Quatfit1Config, Quatfit1ForConditionalGeneration)

@@ -21,8 +21,8 @@ from ...utils.import_utils import define_import_structure
 if TYPE_CHECKING:
     from .configuration_quatfit1 import *
     from .feature_extraction_quatfit1 import *
-    from .image_processing_quatfit1 import *
     from .image_processing_pil_quatfit1 import *
+    from .image_processing_quatfit1 import *
     from .modeling_quatfit1 import *
     from .processing_quatfit1 import *
     from .video_processing_quatfit1 import *
