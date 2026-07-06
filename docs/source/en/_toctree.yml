@@ -1288,7 +1288,7 @@
       - local: model_doc/gemma3n
         title: Gemma3n
       - local: model_doc/gemma4
-  title: Gemma4
+        title: Gemma4
       - local: model_doc/quatfit1
         title: Quatfit 1
       - local: model_doc/gemma4_unified
