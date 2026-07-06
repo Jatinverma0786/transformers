@@ -1588,7 +1588,7 @@ class Quatfit1PreTrainedModel(PreTrainedModel):
             self.set_per_layer_input_embeddings(new_embeddings_per_layer)
 
 
-@auto_docstring(custom_intro="The base Gemma 4 language model without a language modeling head.")
+@auto_docstring(custom_intro="The base Quatfit 1 language model without a language modeling head.")
 class Quatfit1TextModel(Quatfit1PreTrainedModel):
     config: Quatfit1TextConfig
     input_modalities = ("text",)
@@ -1824,7 +1824,7 @@ class Quatfit1TextModel(Quatfit1PreTrainedModel):
         return (per_layer_projection + per_layer_inputs) * self.per_layer_input_scale
 
 
-@auto_docstring(custom_intro="The base Gemma 4 language model with a language modeling head.")
+@auto_docstring(custom_intro="The base Quatfit 1 language model with a language modeling head.")
 class Quatfit1ForCausalLM(Quatfit1PreTrainedModel, GenerationMixin):
     _tied_weights_keys = {"lm_head.weight": "model.embed_tokens.weight"}
     _tp_plan = {"lm_head": "colwise_gather_output"}
@@ -2018,7 +2018,7 @@ class Quatfit1AudioModel(Quatfit1PreTrainedModel):
 
 
 class Quatfit1VisionModel(Quatfit1PreTrainedModel):
-    """The Gemma 4 Vision Encoder."""
+    """The Quatfit 1 Vision Encoder."""
 
     config = Quatfit1VisionConfig
     _can_record_outputs = {
@@ -2127,7 +2127,7 @@ def create_masks_for_vision_model(
     For global (full attention) layers:  causal only (no bidirectional)
     For local (sliding window) layers:  AND(sliding_window, OR(causal, blockwise))
 
-    Unlike Gemma 3 (which applies bidirectional attention on all layers), Gemma 4
+    Unlike Gemma 3 (which applies bidirectional attention on all layers), Quatfit 1
     explicitly disables bidirectional attention on global attention layers.
     """
     mask_kwargs = {
@@ -2183,7 +2183,7 @@ def get_block_sequence_ids_for_mask(mm_token_type_ids: torch.Tensor, device: tor
 
 @auto_docstring(
     custom_intro="""
-    The base Gemma 4 model comprising a vision backbone, an audio backbone, and a language model without a
+    The base Quatfit 1 model comprising a vision backbone, an audio backbone, and a language model without a
     language modeling head.
     """
 )
@@ -2506,7 +2506,7 @@ class Quatfit1Model(Quatfit1PreTrainedModel):
 
 @auto_docstring(
     custom_intro="""
-    The base Gemma 4 model comprising a vision backbone, an audio backbone, a language model, and a language modeling
+    The base Quatfit 1 model comprising a vision backbone, an audio backbone, a language model, and a language modeling
     head.
     """
 )

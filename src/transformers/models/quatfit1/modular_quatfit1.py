@@ -97,7 +97,7 @@ def create_masks_for_vision_model(
     For global (full attention) layers:  causal only (no bidirectional)
     For local (sliding window) layers:  AND(sliding_window, OR(causal, blockwise))
 
-    Unlike Gemma 3 (which applies bidirectional attention on all layers), Gemma 4
+    Unlike Gemma 3 (which applies bidirectional attention on all layers), Quatfit 1
     explicitly disables bidirectional attention on global attention layers.
     """
     mask_kwargs = {
@@ -1345,7 +1345,7 @@ class Quatfit1PreTrainedModel(Gemma3nPreTrainedModel):
             init.ones_(module.std_scale)
 
 
-@auto_docstring(custom_intro="The base Gemma 4 language model without a language modeling head.")
+@auto_docstring(custom_intro="The base Quatfit 1 language model without a language modeling head.")
 class Quatfit1TextModel(Gemma3TextModel):
     config: Quatfit1TextConfig
     _can_record_outputs = {
@@ -1568,7 +1568,7 @@ class Quatfit1TextModel(Gemma3TextModel):
         )
 
 
-@auto_docstring(custom_intro="The base Gemma 4 language model with a language modeling head.")
+@auto_docstring(custom_intro="The base Quatfit 1 language model with a language modeling head.")
 class Quatfit1ForCausalLM(Gemma3ForCausalLM):
     base_model_prefix = "model"
 
@@ -1733,7 +1733,7 @@ class Quatfit1AudioModel(Quatfit1PreTrainedModel):
 
 
 class Quatfit1VisionModel(Quatfit1PreTrainedModel):
-    """The Gemma 4 Vision Encoder."""
+    """The Quatfit 1 Vision Encoder."""
 
     config = Quatfit1VisionConfig
     _can_record_outputs = {
@@ -1876,7 +1876,7 @@ def get_block_sequence_ids_for_mask(mm_token_type_ids: torch.Tensor, device: tor
 
 @auto_docstring(
     custom_intro="""
-    The base Gemma 4 model comprising a vision backbone, an audio backbone, and a language model without a
+    The base Quatfit 1 model comprising a vision backbone, an audio backbone, and a language model without a
     language modeling head.
     """
 )
@@ -2191,7 +2191,7 @@ class Quatfit1Model(Gemma3nModel):
 
 @auto_docstring(
     custom_intro="""
-    The base Gemma 4 model comprising a vision backbone, an audio backbone, a language model, and a language modeling
+    The base Quatfit 1 model comprising a vision backbone, an audio backbone, a language model, and a language modeling
     head.
     """
 )

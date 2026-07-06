@@ -657,7 +657,7 @@ class Quatfit1Vision2TextModelTest(ModelTesterMixin, GenerationTesterMixin, unit
 @require_torch_accelerator
 class Quatfit1IntegrationTest(unittest.TestCase):
     def setUp(self):
-        self.model_name = "google/gemma-4-E2B-it"
+        self.model_name = "Quatfit/Quatfit-Mini"
         self.processor = Quatfit1Processor.from_pretrained(self.model_name)
 
         self.url1 = url_to_local_path(
