@@ -17,7 +17,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import math
 from collections import UserDict
 from collections.abc import Callable
@@ -61,18 +60,8 @@ from ...utils import (
 )
 from ...utils.generic import maybe_autocast, merge_with_config_defaults
 from ...utils.output_capturing import OutputRecorder, capture_outputs
-from ..auto import (
-    AutoConfig,
-    AutoModel,
-    AutoModelForCausalLM,
-    AutoModelForImageTextToText,
-)
-from .configuration_quatfit1 import (
-    Quatfit1AudioConfig,
-    Quatfit1Config,
-    Quatfit1TextConfig,
-    Quatfit1VisionConfig,
-)
+from ..auto import AutoModel
+from .configuration_quatfit1 import Quatfit1AudioConfig, Quatfit1Config, Quatfit1TextConfig, Quatfit1VisionConfig
 
 
 if is_accelerate_available():
@@ -1488,7 +1477,7 @@ class Quatfit1TextScaledWordEmbedding(nn.Embedding):
 
 @auto_docstring
 class Quatfit1PreTrainedModel(PreTrainedModel):
-    config_class = Quatfit1Config
+    config: Quatfit1Config
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
     _no_split_modules = [
@@ -1609,6 +1598,8 @@ class Quatfit1TextModel(Quatfit1PreTrainedModel):
         "attentions": Quatfit1TextAttention,
     }
 
+    config_class = Quatfit1Config
+
     def __init__(self, config: Quatfit1TextConfig):
         super().__init__(config)
         self.padding_idx = config.pad_token_id
@@ -1644,7 +1635,9 @@ class Quatfit1TextModel(Quatfit1PreTrainedModel):
                 bias=False,
             )
             self.per_layer_model_projection_scale = config.hidden_size**-0.5
-            self.per_layer_projection_norm = Quatfit1RMSNorm(config.hidden_size_per_layer_input, eps=config.rms_norm_eps)
+            self.per_layer_projection_norm = Quatfit1RMSNorm(
+                config.hidden_size_per_layer_input, eps=config.rms_norm_eps
+            )
 
         # Update `_keys_to_ignore_on_load_unexpected` to drop all k/v proj and norms for the shared layers
         self._keys_to_ignore_on_load_unexpected = []
@@ -2106,7 +2099,9 @@ class Quatfit1MultimodalEmbedder(nn.Module):
         self.eps = multimodal_config.rms_norm_eps
         self.text_hidden_size = text_config.hidden_size
         self.embedding_projection = nn.Linear(self.multimodal_hidden_size, self.text_hidden_size, bias=False)
-        self.embedding_pre_projection_norm = Quatfit1RMSNorm(self.multimodal_hidden_size, eps=self.eps, with_scale=False)
+        self.embedding_pre_projection_norm = Quatfit1RMSNorm(
+            self.multimodal_hidden_size, eps=self.eps, with_scale=False
+        )
 
     def forward(self, inputs_embeds: torch.Tensor) -> torch.Tensor:
         """Embeds token ids or soft tokens for multimodal content into language model space.
@@ -2195,6 +2190,7 @@ def get_block_sequence_ids_for_mask(mm_token_type_ids: torch.Tensor, device: tor
 class Quatfit1Model(Quatfit1PreTrainedModel):
     # we are filtering the logits/labels so we shouldn't divide the loss based on num_items_in_batch
     accepts_loss_kwargs = False
+    config_class = Quatfit1Config
 
     def __init__(self, config: Quatfit1Config):
         super().__init__(config)
@@ -2716,10 +2712,3 @@ __all__ = [
     "Quatfit1TextModel",
     "Quatfit1VisionModel",
 ]
-
-
-# Register with the auto system
-AutoConfig.register("quatfit1", Quatfit1Config)
-AutoModel.register(Quatfit1Config, Quatfit1ForConditionalGeneration)
-AutoModelForCausalLM.register(Quatfit1Config, Quatfit1ForConditionalGeneration)
-AutoModelForImageTextToText.register(Quatfit1Config, Quatfit1ForConditionalGeneration)

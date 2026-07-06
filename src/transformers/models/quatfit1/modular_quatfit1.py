@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 import math
 from collections import UserDict
 from collections.abc import Callable
@@ -51,7 +50,7 @@ from ...utils import (
 )
 from ...utils.generic import maybe_autocast, merge_with_config_defaults, no_inherit_decorator
 from ...utils.output_capturing import OutputRecorder, capture_outputs
-from ..auto.modeling_auto import AutoModel
+from ..auto import AutoModel, AutoModelForCausalLM, AutoModelForImageTextToText
 from ..gemma3.modeling_gemma3 import (
     Gemma3Attention,
     Gemma3DecoderLayer,
@@ -1355,6 +1354,8 @@ class Quatfit1TextModel(Gemma3TextModel):
         "attentions": Quatfit1TextAttention,
     }
 
+    config_class = Quatfit1Config
+
     def __init__(self, config: Quatfit1TextConfig):
         super().__init__(config)
         self.layers = nn.ModuleList(
@@ -1381,7 +1382,9 @@ class Quatfit1TextModel(Gemma3TextModel):
                 bias=False,
             )
             self.per_layer_model_projection_scale = config.hidden_size**-0.5
-            self.per_layer_projection_norm = Quatfit1RMSNorm(config.hidden_size_per_layer_input, eps=config.rms_norm_eps)
+            self.per_layer_projection_norm = Quatfit1RMSNorm(
+                config.hidden_size_per_layer_input, eps=config.rms_norm_eps
+            )
 
         # Update `_keys_to_ignore_on_load_unexpected` to drop all k/v proj and norms for the shared layers
         self._keys_to_ignore_on_load_unexpected = []
@@ -1814,7 +1817,9 @@ class Quatfit1MultimodalEmbedder(Gemma3nMultimodalEmbedder):
         del self.embedding_post_projection_norm
 
         self.multimodal_hidden_size = getattr(multimodal_config, "output_proj_dims", multimodal_config.hidden_size)
-        self.embedding_pre_projection_norm = Quatfit1RMSNorm(self.multimodal_hidden_size, eps=self.eps, with_scale=False)
+        self.embedding_pre_projection_norm = Quatfit1RMSNorm(
+            self.multimodal_hidden_size, eps=self.eps, with_scale=False
+        )
 
     def forward(self, inputs_embeds: torch.Tensor) -> torch.Tensor:
         """Embeds token ids or soft tokens for multimodal content into language model space.
@@ -1876,6 +1881,8 @@ def get_block_sequence_ids_for_mask(mm_token_type_ids: torch.Tensor, device: tor
     """
 )
 class Quatfit1Model(Gemma3nModel):
+    config_class = Quatfit1Config
+
     def __init__(self, config: Quatfit1Config):
         super().__init__(config)
         self.vision_tower = AutoModel.from_config(config.vision_config) if config.vision_config is not None else None
@@ -2380,3 +2387,9 @@ __all__ = [
     "Quatfit1TextModel",
     "Quatfit1VisionModel",
 ]
+
+
+# Register with the auto system
+AutoModel.register(Quatfit1Config, Quatfit1ForConditionalGeneration)
+AutoModelForCausalLM.register(Quatfit1Config, Quatfit1ForConditionalGeneration)
+AutoModelForImageTextToText.register(Quatfit1Config, Quatfit1ForConditionalGeneration)
